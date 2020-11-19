@@ -31,6 +31,7 @@ import java.util.List;
 public class CameraActivity extends AppCompatActivity {
     private static final int IMAGE_FORMAT = ImageFormat.NV21;
     private static final int CAMERA_ID = Camera.CameraInfo.CAMERA_FACING_FRONT;
+    //private static final int CAMERA_ID = Camera.CameraInfo.CAMERA_FACING_BACK;
 
     private SurfaceView mSurfaceView;
     private Camera mCamera;

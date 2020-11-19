@@ -1,12 +1,17 @@
 package com.zwp.mobilefacenet;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -19,6 +24,7 @@ import com.zwp.mobilefacenet.mobilefacenet.MobileFaceNet;
 import com.zwp.mobilefacenet.mtcnn.Align;
 import com.zwp.mobilefacenet.mtcnn.Box;
 import com.zwp.mobilefacenet.mtcnn.MTCNN;
+import com.zwp.mobilefacenet.mtcnn.Utils;
 
 import java.io.IOException;
 import java.util.Vector;
@@ -41,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView resultTextView;
     private TextView resultTextView2;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        requestCameraPermission();
+
         initCamera();
         cropBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,6 +94,22 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private boolean requestCameraPermission() {
+        if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            // Own camera permission
+            //Log.v(AbstractedCamera.TAG + "checkSelfPermission", "Camera permission granted");
+            return true;
+        }
+        // request camera permission
+        Log.v("requestCameraPermission", "request camera permission");
+        requestPermissions(new String[]{Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+        return false;
+    }
+
     /**
      * 人脸检测并裁减
      */
@@ -99,11 +124,13 @@ public class MainActivity extends AppCompatActivity {
 
         // 检测出人脸数据
         long start = System.currentTimeMillis();
-        Vector<Box> boxes1 = mtcnn.detectFaces(bitmapTemp1, bitmapTemp1.getWidth() / 5); // 只有这句代码检测人脸，下面都是根据Box在图片中裁减出人脸
+        // 只有这句代码检测人脸，下面都是根据Box在图片中裁减出人脸
+        Vector<Box> boxes1 = mtcnn.detectFaces(bitmapTemp1, bitmapTemp1.getWidth() / 5);
         long end = System.currentTimeMillis();
         resultTextView.setText("人脸检测前向传播耗时：" + (end - start));
         resultTextView2.setText("");
-        Vector<Box> boxes2 = mtcnn.detectFaces(bitmapTemp2, bitmapTemp2.getWidth() / 5); // 只有这句代码检测人脸，下面都是根据Box在图片中裁减出人脸
+        // 只有这句代码检测人脸，下面都是根据Box在图片中裁减出人脸
+        Vector<Box> boxes2 = mtcnn.detectFaces(bitmapTemp2, bitmapTemp2.getWidth() / 5);
         if (boxes1.size() == 0 || boxes2.size() == 0) {
             Toast.makeText(MainActivity.this, "未检测到人脸", Toast.LENGTH_LONG).show();
             return;
@@ -133,8 +160,8 @@ public class MainActivity extends AppCompatActivity {
         bitmapCrop2 = MyUtil.crop(bitmapTemp2, rect2);
 
         // 绘制人脸框和五点
-//        Utils.drawBox(bitmapTemp1, box1, 10);
-//        Utils.drawBox(bitmapTemp2, box2, 10);
+        Utils.drawBox(bitmapTemp1, box1, 10);
+        Utils.drawBox(bitmapTemp2, box2, 10);
 
 //        bitmapCrop1 = MyUtil.readFromAssets(this, "42.png");
 //        bitmapCrop2 = MyUtil.readFromAssets(this, "52.png");
